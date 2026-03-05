@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thread Voice AI Quiz</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --teal: #1a7a6e;
@@ -207,6 +208,9 @@
     }
     .lb-date { font-size: 12px; color: var(--gray); }
     .lb-empty { text-align: center; color: var(--gray); font-size: 14px; padding: 20px 0; }
+    .lb-loading { text-align: center; color: var(--gray); font-size: 14px; padding: 20px 0; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .lb-loading { animation: pulse 1.2s ease infinite; }
 
     /* screen visibility */
     .screen { display: none; }
@@ -405,11 +409,15 @@ const QUESTIONS = [
   }
 ];
 
+// ── Supabase config — fill in your project URL and anon key ──
+const SUPABASE_URL = 'https://jfkebpbhzajqcwolouqq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_zx6GBJqduYo0KWaHDFx0zQ_tzOC0WYz';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let currentQ = 0;
 let score = 0;
 let answered = false;
 let playerName = '';
-const STORAGE_KEY = 'threadVoiceQuizLeaderboard';
 
 // Name input gating
 document.getElementById('name-input').addEventListener('input', function() {
@@ -496,19 +504,15 @@ function nextQuestion() {
   }
 }
 
-function finishQuiz() {
+async function finishQuiz() {
   const total = QUESTIONS.length;
   const pct = score / total;
 
-  // Save to leaderboard
-  saveScore(playerName, score, total);
-
-  // Ring color
+  // Show results screen first (leaderboard loads async after)
   const ring = document.getElementById('score-ring');
   ring.className = 'score-ring ' + (pct >= 0.9 ? 'score-great' : pct >= 0.7 ? 'score-good' : pct >= 0.5 ? 'score-ok' : 'score-low');
   document.getElementById('score-num').textContent = `${score}/${total}`;
 
-  // Emoji + message
   let emoji, msg, sub;
   if (pct === 1)        { emoji='🏆🎉🌟'; msg='Perfect score!'; sub='You crushed it — Voice AI expert unlocked.'; }
   else if (pct >= 0.9) { emoji='🔥💪'; msg='Almost perfect!'; sub='You really know your stuff. One to review!'; }
@@ -519,32 +523,38 @@ function finishQuiz() {
   document.getElementById('result-emoji').textContent = emoji;
   document.getElementById('result-msg').textContent = `${playerName}, ${msg}`;
   document.getElementById('result-sub').textContent = sub;
-
-  renderLeaderboard('results-lb');
   showScreen('screen-results');
+
+  // Save score then refresh leaderboard
+  await saveScore(playerName, score, total);
+  await renderLeaderboard('results-lb');
 }
 
-function saveScore(name, score, total) {
-  const lb = getLeaderboard();
-  lb.push({ name, score, total, date: new Date().toLocaleDateString() });
-  lb.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(lb.slice(0, 50)));
+async function saveScore(name, score, total) {
+  await sb.from('scores').insert({ name, score, total });
 }
 
-function getLeaderboard() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
+async function getLeaderboard() {
+  const { data } = await sb
+    .from('scores')
+    .select('name, score, total, created_at')
+    .order('score', { ascending: false })
+    .order('created_at', { ascending: true })
+    .limit(10);
+  return data || [];
 }
 
-function renderLeaderboard(elId) {
-  const lb = getLeaderboard();
+async function renderLeaderboard(elId) {
   const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = '<div class="lb-loading">Loading scores…</div>';
+  const lb = await getLeaderboard();
   if (lb.length === 0) {
     el.innerHTML = '<div class="lb-empty">No scores yet — be the first! 🎯</div>';
     return;
   }
   el.innerHTML = '';
-  lb.slice(0, 10).forEach((entry, i) => {
+  lb.forEach((entry, i) => {
     const rankClasses = ['gold', 'silver', 'bronze'];
     const rankClass = i < 3 ? rankClasses[i] : '';
     const medals = ['🥇', '🥈', '🥉'];
@@ -567,10 +577,18 @@ function retryQuiz() {
   renderQuestion();
 }
 
-function goHome() {
-  renderLeaderboard('welcome-lb');
+async function goHome() {
+  await renderLeaderboard('welcome-lb');
   showScreen('screen-welcome');
 }
+
+// Real-time: refresh leaderboards whenever a new score is inserted
+sb.channel('scores')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'scores' }, () => {
+    renderLeaderboard('welcome-lb');
+    renderLeaderboard('results-lb');
+  })
+  .subscribe();
 
 // Init leaderboard on load
 renderLeaderboard('welcome-lb');
