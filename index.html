@@ -498,12 +498,34 @@ async function renderLeaderboard(elId) {
     const rankLabel = i < 3 ? medals[i] : (i + 1);
     const isMe = entry.name === playerName;
     const pct = Math.round((entry.score / entry.total) * 100);
-    el.innerHTML += `
-      <li class="lb-item ${isMe ? 'is-me' : ''}">
-        <span class="lb-rank ${rankClass}">${rankLabel}</span>
-        <span class="lb-name">${entry.name}${isMe ? ' <span style="font-size:11px;color:var(--purple)">YOU</span>' : ''}</span>
-        <span class="lb-score">${entry.score}/${entry.total} <span style="font-size:12px;color:var(--gray)">(${pct}%)</span></span>
-      </li>`;
+
+    const li = document.createElement('li');
+    li.className = 'lb-item' + (isMe ? ' is-me' : '');
+
+    const rank = document.createElement('span');
+    rank.className = 'lb-rank' + (rankClass ? ' ' + rankClass : '');
+    rank.textContent = rankLabel;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'lb-name';
+    nameSpan.textContent = entry.name; // textContent = safe, never parsed as HTML
+    if (isMe) {
+      const you = document.createElement('span');
+      you.style.cssText = 'font-size:11px;color:var(--purple)';
+      you.textContent = ' YOU';
+      nameSpan.appendChild(you);
+    }
+
+    const scoreSpan = document.createElement('span');
+    scoreSpan.className = 'lb-score';
+    scoreSpan.textContent = `${entry.score}/${entry.total} `;
+    const pctSpan = document.createElement('span');
+    pctSpan.style.cssText = 'font-size:12px;color:var(--gray)';
+    pctSpan.textContent = `(${pct}%)`;
+    scoreSpan.appendChild(pctSpan);
+
+    li.append(rank, nameSpan, scoreSpan);
+    el.appendChild(li);
   });
 }
 
