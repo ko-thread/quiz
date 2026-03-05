@@ -7,11 +7,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --teal: #1a7a6e;
-      --teal-dark: #0f5c52;
-      --teal-light: #2aa396;
-      --mint: #a8e6ce;
-      --mint-bg: #e8f8f1;
+      --purple: #AE7EFD;
+      --purple-dark: #8B5CF6;
+      --purple-light: #C4B5FD;
+      --purple-bg: #F5F0FF;
       --white: #ffffff;
       --gray-light: #f4f4f4;
       --gray: #888;
@@ -27,11 +26,18 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f5c52 0%, #1a7a6e 50%, #2aa396 100%);
+      background: #000;
+      background-image:
+        radial-gradient(ellipse 110% 55% at 50% 100%,
+          rgba(130, 60, 220, 0.70) 0%,
+          rgba(90, 30, 170, 0.40) 45%,
+          transparent 70%);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 24px;
       padding: 20px;
     }
 
@@ -55,22 +61,20 @@
       to   { opacity: 1; }
     }
 
-    /* ── Logo / header ── */
-    .logo {
+    /* ── Logo above card ── */
+    .logo-above {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 32px;
     }
-    .logo-icon {
+    .logo-above .logo-icon {
       width: 40px; height: 40px;
-      background: var(--teal);
+      background: white;
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 20px; font-weight: 700;
+      color: #000; font-size: 20px; font-weight: 700;
     }
-    .logo-text { font-size: 20px; font-weight: 700; color: var(--teal-dark); }
-    .logo-sub  { font-size: 13px; color: var(--gray); margin-left: 4px; }
+    .logo-above .logo-text { font-size: 22px; font-weight: 700; color: white; letter-spacing: -0.3px; }
 
     h1 { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
     h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
@@ -84,7 +88,7 @@
       outline: none; transition: border 0.2s;
       margin-bottom: 20px;
     }
-    input[type="text"]:focus { border-color: var(--teal-light); }
+    input[type="text"]:focus { border-color: var(--purple); }
 
     /* ── Buttons ── */
     .btn {
@@ -94,15 +98,15 @@
       border: none; transition: all 0.2s; width: 100%;
     }
     .btn-primary {
-      background: var(--teal); color: white;
+      background: var(--purple); color: white;
     }
-    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-primary:hover { background: var(--purple-dark); transform: translateY(-1px); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .btn-outline {
-      background: transparent; color: var(--teal);
-      border: 2px solid var(--teal); margin-top: 12px;
+      background: transparent; color: var(--purple);
+      border: 2px solid var(--purple); margin-top: 12px;
     }
-    .btn-outline:hover { background: var(--mint-bg); }
+    .btn-outline:hover { background: var(--purple-bg); }
 
     /* ── Progress bar ── */
     .progress-wrap {
@@ -110,7 +114,7 @@
       height: 8px; margin-bottom: 28px; overflow: hidden;
     }
     .progress-bar {
-      background: linear-gradient(90deg, var(--teal), var(--teal-light));
+      background: linear-gradient(90deg, var(--purple-dark), var(--purple));
       height: 100%; border-radius: 99px;
       transition: width 0.4s ease;
     }
@@ -125,8 +129,8 @@
       margin-bottom: 24px; line-height: 1.5;
     }
     .badge {
-      display: inline-block; background: var(--mint-bg);
-      color: var(--teal-dark); font-size: 12px; font-weight: 600;
+      display: inline-block; background: var(--purple-bg);
+      color: var(--purple-dark); font-size: 12px; font-weight: 600;
       padding: 4px 12px; border-radius: 99px; margin-bottom: 16px;
       text-transform: uppercase; letter-spacing: 0.5px;
     }
@@ -140,7 +144,7 @@
       transition: all 0.15s; display: flex; align-items: center; gap: 12px;
       background: white;
     }
-    .option:hover:not(.disabled) { border-color: var(--teal-light); background: var(--mint-bg); }
+    .option:hover:not(.disabled) { border-color: var(--purple-light); background: var(--purple-bg); }
     .option .opt-letter {
       width: 28px; height: 28px; border-radius: 8px;
       background: #f0f0f0; display: flex; align-items: center;
@@ -192,7 +196,7 @@
       padding: 12px 16px; border-radius: 12px;
       background: var(--gray-light); transition: background 0.2s;
     }
-    .lb-item.is-me { background: var(--mint-bg); border: 1.5px solid var(--mint); }
+    .lb-item.is-me { background: var(--purple-bg); border: 1.5px solid var(--purple-light); }
     .lb-rank {
       width: 28px; height: 28px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
@@ -204,7 +208,7 @@
     .lb-rank.bronze { background: #fdf2e9; color: var(--bronze); }
     .lb-name { flex: 1; font-weight: 600; font-size: 15px; }
     .lb-score {
-      font-size: 15px; font-weight: 700; color: var(--teal-dark);
+      font-size: 15px; font-weight: 700; color: var(--purple-dark);
     }
     .lb-date { font-size: 12px; color: var(--gray); }
     .lb-empty { text-align: center; color: var(--gray); font-size: 14px; padding: 20px 0; }
@@ -222,17 +226,14 @@
   </style>
 </head>
 <body>
+<div class="logo-above">
+  <div class="logo-icon">⊕</div>
+  <span class="logo-text">thread</span>
+</div>
 <div class="card">
 
   <!-- SCREEN 1: Welcome -->
   <div class="screen active" id="screen-welcome">
-    <div class="logo">
-      <div class="logo-icon">⊕</div>
-      <div>
-        <span class="logo-text">thread</span>
-        <span class="logo-sub">Voice AI Quiz</span>
-      </div>
-    </div>
     <h1>How well do you know Voice AI? 🎙️</h1>
     <p>10 questions based on today's sales training. Test your knowledge and compete with your teammates!</p>
     <input type="text" id="name-input" placeholder="Enter your name to get started" maxlength="40" />
@@ -244,10 +245,6 @@
 
   <!-- SCREEN 2: Question -->
   <div class="screen" id="screen-question">
-    <div class="logo">
-      <div class="logo-icon">⊕</div>
-      <span class="logo-text">thread</span>
-    </div>
     <div class="progress-label">
       <span id="q-counter">Question 1 of 10</span>
       <span id="q-score-live">Score: 0</span>
@@ -264,10 +261,6 @@
 
   <!-- SCREEN 3: Results + Leaderboard -->
   <div class="screen" id="screen-results">
-    <div class="logo">
-      <div class="logo-icon">⊕</div>
-      <span class="logo-text">thread</span>
-    </div>
     <div class="emoji-row" id="result-emoji"></div>
     <div class="score-ring" id="score-ring">
       <span id="score-num">0/10</span>
@@ -564,7 +557,7 @@ async function renderLeaderboard(elId) {
     el.innerHTML += `
       <li class="lb-item ${isMe ? 'is-me' : ''}">
         <span class="lb-rank ${rankClass}">${rankLabel}</span>
-        <span class="lb-name">${entry.name}${isMe ? ' <span style="font-size:11px;color:var(--teal)">YOU</span>' : ''}</span>
+        <span class="lb-name">${entry.name}${isMe ? ' <span style="font-size:11px;color:var(--purple)">YOU</span>' : ''}</span>
         <span class="lb-score">${entry.score}/${entry.total} <span style="font-size:12px;color:var(--gray)">(${pct}%)</span></span>
       </li>`;
   });
