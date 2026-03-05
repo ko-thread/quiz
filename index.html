@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thread Voice AI Quiz</title>
+  <style>
+    :root {
+      --teal: #1a7a6e;
+      --teal-dark: #0f5c52;
+      --teal-light: #2aa396;
+      --mint: #a8e6ce;
+      --mint-bg: #e8f8f1;
+      --white: #ffffff;
+      --gray-light: #f4f4f4;
+      --gray: #888;
+      --text: #1a1a2e;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --gold: #f59e0b;
+      --silver: #94a3b8;
+      --bronze: #cd7f32;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f5c52 0%, #1a7a6e 50%, #2aa396 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.25);
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Logo / header ── */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: var(--teal);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 20px; font-weight: 700;
+    }
+    .logo-text { font-size: 20px; font-weight: 700; color: var(--teal-dark); }
+    .logo-sub  { font-size: 13px; color: var(--gray); margin-left: 4px; }
+
+    h1 { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    p  { color: #555; line-height: 1.6; margin-bottom: 24px; }
+
+    /* ── Input ── */
+    input[type="text"] {
+      width: 100%; padding: 14px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px; font-size: 16px;
+      outline: none; transition: border 0.2s;
+      margin-bottom: 20px;
+    }
+    input[type="text"]:focus { border-color: var(--teal-light); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 14px 28px; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      border: none; transition: all 0.2s; width: 100%;
+    }
+    .btn-primary {
+      background: var(--teal); color: white;
+    }
+    .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent; color: var(--teal);
+      border: 2px solid var(--teal); margin-top: 12px;
+    }
+    .btn-outline:hover { background: var(--mint-bg); }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      background: #e8e8e8; border-radius: 99px;
+      height: 8px; margin-bottom: 28px; overflow: hidden;
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, var(--teal), var(--teal-light));
+      height: 100%; border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--gray); margin-bottom: 8px;
+    }
+
+    /* ── Question ── */
+    .question-text {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .badge {
+      display: inline-block; background: var(--mint-bg);
+      color: var(--teal-dark); font-size: 12px; font-weight: 600;
+      padding: 4px 12px; border-radius: 99px; margin-bottom: 16px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* ── Answer options ── */
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option {
+      padding: 14px 18px; border-radius: 12px;
+      border: 2px solid #e8e8e8; cursor: pointer;
+      font-size: 15px; color: var(--text);
+      transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+      background: white;
+    }
+    .option:hover:not(.disabled) { border-color: var(--teal-light); background: var(--mint-bg); }
+    .option .opt-letter {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: #f0f0f0; display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 13px;
+      flex-shrink: 0; transition: all 0.15s;
+    }
+    .option.correct  { border-color: var(--correct); background: #f0fdf4; }
+    .option.correct .opt-letter  { background: var(--correct); color: white; }
+    .option.wrong    { border-color: var(--wrong);   background: #fef2f2; }
+    .option.wrong .opt-letter    { background: var(--wrong);   color: white; }
+    .option.disabled { cursor: default; }
+
+    /* ── Feedback ── */
+    .feedback {
+      margin-top: 16px; padding: 14px 18px;
+      border-radius: 12px; font-size: 14px; font-weight: 500;
+      animation: fadeIn 0.3s ease;
+    }
+    .feedback.correct { background: #f0fdf4; color: #15803d; }
+    .feedback.wrong   { background: #fef2f2; color: #b91c1c; }
+
+    .next-btn { margin-top: 20px; }
+
+    /* ── Results ── */
+    .score-ring {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 36px; font-weight: 800;
+    }
+    .score-ring .score-label { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    .score-great { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+    .score-good  { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+    .score-ok    { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+    .score-low   { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; }
+
+    .result-msg { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .result-sub { text-align: center; color: #555; margin-bottom: 28px; font-size: 15px; }
+
+    /* ── Leaderboard ── */
+    .lb-title {
+      font-size: 16px; font-weight: 700; color: var(--text);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .lb-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 16px; border-radius: 12px;
+      background: var(--gray-light); transition: background 0.2s;
+    }
+    .lb-item.is-me { background: var(--mint-bg); border: 1.5px solid var(--mint); }
+    .lb-rank {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px; flex-shrink: 0;
+      background: #e0e0e0; color: #555;
+    }
+    .lb-rank.gold   { background: #fef3c7; color: var(--gold); }
+    .lb-rank.silver { background: #f1f5f9; color: var(--silver); }
+    .lb-rank.bronze { background: #fdf2e9; color: var(--bronze); }
+    .lb-name { flex: 1; font-weight: 600; font-size: 15px; }
+    .lb-score {
+      font-size: 15px; font-weight: 700; color: var(--teal-dark);
+    }
+    .lb-date { font-size: 12px; color: var(--gray); }
+    .lb-empty { text-align: center; color: var(--gray); font-size: 14px; padding: 20px 0; }
+
+    /* screen visibility */
+    .screen { display: none; }
+    .screen.active { display: block; animation: slideUp 0.35s ease; }
+
+    .divider { border: none; border-top: 1px solid #e8e8e8; margin: 24px 0; }
+
+    .emoji-row { font-size: 28px; text-align: center; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- SCREEN 1: Welcome -->
+  <div class="screen active" id="screen-welcome">
+    <div class="logo">
+      <div class="logo-icon">⊕</div>
+      <div>
+        <span class="logo-text">thread</span>
+        <span class="logo-sub">Voice AI Quiz</span>
+      </div>
+    </div>
+    <h1>How well do you know Voice AI? 🎙️</h1>
+    <p>10 questions based on today's sales training. Test your knowledge and compete with your teammates!</p>
+    <input type="text" id="name-input" placeholder="Enter your name to get started" maxlength="40" />
+    <button class="btn btn-primary" id="start-btn" disabled onclick="startQuiz()">Start Quiz →</button>
+    <hr class="divider" />
+    <div class="lb-title">🏆 Leaderboard</div>
+    <ul class="lb-list" id="welcome-lb"></ul>
+  </div>
+
+  <!-- SCREEN 2: Question -->
+  <div class="screen" id="screen-question">
+    <div class="logo">
+      <div class="logo-icon">⊕</div>
+      <span class="logo-text">thread</span>
+    </div>
+    <div class="progress-label">
+      <span id="q-counter">Question 1 of 10</span>
+      <span id="q-score-live">Score: 0</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="badge" id="q-topic">Topic</div>
+    <div class="question-text" id="q-text">Question text</div>
+    <div class="options" id="q-options"></div>
+    <div class="feedback" id="q-feedback" style="display:none"></div>
+    <button class="btn btn-primary next-btn" id="next-btn" style="display:none" onclick="nextQuestion()">Next →</button>
+  </div>
+
+  <!-- SCREEN 3: Results + Leaderboard -->
+  <div class="screen" id="screen-results">
+    <div class="logo">
+      <div class="logo-icon">⊕</div>
+      <span class="logo-text">thread</span>
+    </div>
+    <div class="emoji-row" id="result-emoji"></div>
+    <div class="score-ring" id="score-ring">
+      <span id="score-num">0/10</span>
+      <span class="score-label">Score</span>
+    </div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-sub" id="result-sub"></div>
+    <hr class="divider" />
+    <div class="lb-title">🏆 Leaderboard</div>
+    <ul class="lb-list" id="results-lb"></ul>
+    <hr class="divider" />
+    <button class="btn btn-primary" onclick="retryQuiz()">Try Again</button>
+    <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    topic: "What is Voice AI",
+    question: "What does Voice AI primarily do with a phone call?",
+    options: [
+      "Troubleshoot the caller's issue in real time",
+      "Capture the issue and turn it into a structured ticket before the technician joins",
+      "Replace the MSP's existing phone system",
+      "Send an email summary to the caller after the call"
+    ],
+    correct: 1,
+    explanation: "Voice AI captures the issue from a phone call and turns it into a structured ticket before the technician joins — that's its core value."
+  },
+  {
+    topic: "Value Prop",
+    question: "How should MSPs primarily evaluate Voice AI?",
+    options: [
+      "As a customer-facing experience product — 'Will my customers like talking to this?'",
+      "As a replacement for their current helpdesk team",
+      "As an operations product — 'Does my service desk become faster and cheaper to run?'",
+      "As a troubleshooting AI that solves issues during the call"
+    ],
+    correct: 2,
+    explanation: "MSPs should evaluate Voice as an operations product focused on efficiency — better ticket intake, fewer interruptions, lower costs — not purely on how 'natural' it sounds."
+  },
+  {
+    topic: "Use Cases",
+    question: "Which Voice AI use case is considered the HIGHEST value?",
+    options: [
+      "Overflow as after hours + holidays",
+      "Attendant just for record and transcribe",
+      "Overflow as front desk",
+      "Attendant + Overflow (greets caller, creates ticket, tries transfer, falls back to Overflow)"
+    ],
+    correct: 3,
+    explanation: "Attendant + Overflow is the highest value use case — it combines warm transfer with a smart fallback so callers are always handled, even when no technician answers."
+  },
+  {
+    topic: "Attendant vs Overflow",
+    question: "What is the key difference between Attendant and Overflow?",
+    options: [
+      "Attendant only records calls; Overflow creates tickets",
+      "Attendant creates tickets AND routes to technicians; Overflow only creates tickets",
+      "Overflow supports multiple languages; Attendant is English only",
+      "Attendant works after hours; Overflow works during business hours"
+    ],
+    correct: 1,
+    explanation: "Attendant creates tickets and routes to a technician or call group. Overflow only creates a ticket — it's great for when no one is available."
+  },
+  {
+    topic: "Attendant Modes",
+    question: "Which Attendant mode does NOT interact with callers at all?",
+    options: [
+      "Advanced Attendant",
+      "Basic Attendant",
+      "Standard Attendant",
+      "Minimal Attendant"
+    ],
+    correct: 3,
+    explanation: "Minimal Attendant only transcribes and records — the call goes directly to the technician line with no AI interaction. Great for MSPs not yet comfortable having AI talk to customers."
+  },
+  {
+    topic: "Attendant Modes",
+    question: "What can Advanced Attendant do that Minimal Attendant cannot?",
+    options: [
+      "Record and transcribe the call",
+      "Transfer to Overflow",
+      "Use AI to understand the caller's issue and optionally ask for name/company",
+      "Route calls to a technician phone number"
+    ],
+    correct: 2,
+    explanation: "Advanced Attendant uses AI to understand the issue and can optionally ask the caller for their name or company if the phone number isn't recognized."
+  },
+  {
+    topic: "Recently Shipped",
+    question: "What does the new 'Overflow on IVR Menu' feature allow?",
+    options: [
+      "MSPs to use Overflow as their primary call handler",
+      "Partners to test custom pronunciations from admin without making a test call",
+      "MSPs to select Overflow as a redirection option directly from the IVR menu with custom greetings",
+      "Technicians to accept calls by voice instead of pressing 1"
+    ],
+    correct: 2,
+    explanation: "Overflow on IVR Menu lets MSPs select Overflow as a redirection option directly from IVR menu settings in Advanced AI mode, with support for custom greetings."
+  },
+  {
+    topic: "Recently Shipped",
+    question: "How can technicians now accept a call handoff?",
+    options: [
+      "By pressing 1 only",
+      "By pressing 1 OR saying 'I'd like to accept the call'",
+      "By sending a text message confirmation",
+      "By logging into the Thread app and clicking Accept"
+    ],
+    correct: 1,
+    explanation: "The Technician Handoff feature now accepts voice too — the agent says 'Press 1 to accept or say I'd like to accept the call'."
+  },
+  {
+    topic: "Limitations",
+    question: "Which of these is a current limitation of Voice AI?",
+    options: [
+      "It cannot create tickets",
+      "It requires replacing the MSP's existing phone system",
+      "Only English is supported",
+      "It cannot record or transcribe calls"
+    ],
+    correct: 2,
+    explanation: "Voice AI currently only supports English. It also does NOT replace the MSP's current phone system — they still need it."
+  },
+  {
+    topic: "Positioning",
+    question: "When an MSP's customer says 'I want to talk to a person', what should the sales rep emphasize?",
+    options: [
+      "That AI is always better than a human agent",
+      "That Voice AI will eventually replace all human agents",
+      "That the customer actually wants a faster path to fixing their issue — which Voice AI provides",
+      "That talking to a person is an available premium add-on"
+    ],
+    correct: 2,
+    explanation: "It's not human vs AI service. When customers say they want a person, they really want to get to the solution faster. Voice AI IS a faster path to fixing their issue."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+let playerName = '';
+const STORAGE_KEY = 'threadVoiceQuizLeaderboard';
+
+// Name input gating
+document.getElementById('name-input').addEventListener('input', function() {
+  document.getElementById('start-btn').disabled = this.value.trim().length < 2;
+});
+document.getElementById('name-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim().length >= 2) startQuiz();
+});
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  const name = document.getElementById('name-input').value.trim();
+  if (name.length < 2) return;
+  playerName = name;
+  currentQ = 0;
+  score = 0;
+  showScreen('screen-question');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+  const pct = (currentQ / total) * 100;
+
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${total}`;
+  document.getElementById('q-score-live').textContent = `Score: ${score}`;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('q-topic').textContent = q.topic;
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('q-feedback').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  answered = false;
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const optionsEl = document.getElementById('q-options');
+  optionsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'option';
+    div.innerHTML = `<span class="opt-letter">${letters[i]}</span><span>${opt}</span>`;
+    div.addEventListener('click', () => selectAnswer(i));
+    optionsEl.appendChild(div);
+  });
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = QUESTIONS[currentQ];
+  const options = document.querySelectorAll('.option');
+  const isCorrect = idx === q.correct;
+
+  options.forEach((el, i) => {
+    el.classList.add('disabled');
+    if (i === q.correct) el.classList.add('correct');
+    if (i === idx && !isCorrect) el.classList.add('wrong');
+  });
+
+  if (isCorrect) score++;
+
+  const fb = document.getElementById('q-feedback');
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = (isCorrect ? '✅ ' : '❌ ') + q.explanation;
+  fb.style.display = 'block';
+
+  document.getElementById('q-score-live').textContent = `Score: ${score}`;
+  document.getElementById('next-btn').style.display = 'block';
+  document.getElementById('next-btn').textContent =
+    currentQ < QUESTIONS.length - 1 ? 'Next →' : 'See Results 🎉';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < QUESTIONS.length) {
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+}
+
+function finishQuiz() {
+  const total = QUESTIONS.length;
+  const pct = score / total;
+
+  // Save to leaderboard
+  saveScore(playerName, score, total);
+
+  // Ring color
+  const ring = document.getElementById('score-ring');
+  ring.className = 'score-ring ' + (pct >= 0.9 ? 'score-great' : pct >= 0.7 ? 'score-good' : pct >= 0.5 ? 'score-ok' : 'score-low');
+  document.getElementById('score-num').textContent = `${score}/${total}`;
+
+  // Emoji + message
+  let emoji, msg, sub;
+  if (pct === 1)        { emoji='🏆🎉🌟'; msg='Perfect score!'; sub='You crushed it — Voice AI expert unlocked.'; }
+  else if (pct >= 0.9) { emoji='🔥💪'; msg='Almost perfect!'; sub='You really know your stuff. One to review!'; }
+  else if (pct >= 0.7) { emoji='👏😎'; msg='Solid work!'; sub='Good grasp of Voice AI. A couple to revisit.'; }
+  else if (pct >= 0.5) { emoji='📚🤔'; msg='Getting there!'; sub='Halfway there — re-read those slides and try again!'; }
+  else                 { emoji='🎙️📖'; msg='Time to study!'; sub='The slides have your back — give it another go!'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-msg').textContent = `${playerName}, ${msg}`;
+  document.getElementById('result-sub').textContent = sub;
+
+  renderLeaderboard('results-lb');
+  showScreen('screen-results');
+}
+
+function saveScore(name, score, total) {
+  const lb = getLeaderboard();
+  lb.push({ name, score, total, date: new Date().toLocaleDateString() });
+  lb.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(lb.slice(0, 50)));
+}
+
+function getLeaderboard() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function renderLeaderboard(elId) {
+  const lb = getLeaderboard();
+  const el = document.getElementById(elId);
+  if (lb.length === 0) {
+    el.innerHTML = '<div class="lb-empty">No scores yet — be the first! 🎯</div>';
+    return;
+  }
+  el.innerHTML = '';
+  lb.slice(0, 10).forEach((entry, i) => {
+    const rankClasses = ['gold', 'silver', 'bronze'];
+    const rankClass = i < 3 ? rankClasses[i] : '';
+    const medals = ['🥇', '🥈', '🥉'];
+    const rankLabel = i < 3 ? medals[i] : (i + 1);
+    const isMe = entry.name === playerName;
+    const pct = Math.round((entry.score / entry.total) * 100);
+    el.innerHTML += `
+      <li class="lb-item ${isMe ? 'is-me' : ''}">
+        <span class="lb-rank ${rankClass}">${rankLabel}</span>
+        <span class="lb-name">${entry.name}${isMe ? ' <span style="font-size:11px;color:var(--teal)">YOU</span>' : ''}</span>
+        <span class="lb-score">${entry.score}/${entry.total} <span style="font-size:12px;color:var(--gray)">(${pct}%)</span></span>
+      </li>`;
+  });
+}
+
+function retryQuiz() {
+  currentQ = 0;
+  score = 0;
+  showScreen('screen-question');
+  renderQuestion();
+}
+
+function goHome() {
+  renderLeaderboard('welcome-lb');
+  showScreen('screen-welcome');
+}
+
+// Init leaderboard on load
+renderLeaderboard('welcome-lb');
+</script>
+</body>
+</html>
