@@ -26,12 +26,9 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #000;
-      background-image:
-        radial-gradient(ellipse 110% 55% at 50% 100%,
-          rgba(130, 60, 220, 0.70) 0%,
-          rgba(90, 30, 170, 0.40) 45%,
-          transparent 70%);
+      background: #000 url('bg.png') no-repeat center bottom;
+      background-size: cover;
+      background-attachment: fixed;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -230,7 +227,7 @@
   <!-- SCREEN 1: Welcome -->
   <div class="screen active" id="screen-welcome">
     <h1>How well do you know Voice AI? 🎙️</h1>
-    <p>10 questions based on today's sales training. Test your knowledge and compete with your teammates!</p>
+    <p>6 questions based on today's sales training. Test your knowledge and compete with your teammates!</p>
     <input type="text" id="name-input" placeholder="Enter your name to get started" maxlength="40" />
     <button class="btn btn-primary" id="start-btn" disabled onclick="startQuiz()">Start Quiz →</button>
     <hr class="divider" />
@@ -324,42 +321,6 @@ const QUESTIONS = [
     explanation: "Attendant creates tickets and routes to a technician or call group. Overflow only creates a ticket — it's great for when no one is available."
   },
   {
-    topic: "Attendant Modes",
-    question: "Which Attendant mode does NOT interact with callers at all?",
-    options: [
-      "Advanced Attendant",
-      "Basic Attendant",
-      "Standard Attendant",
-      "Minimal Attendant"
-    ],
-    correct: 3,
-    explanation: "Minimal Attendant only transcribes and records — the call goes directly to the technician line with no AI interaction. Great for MSPs not yet comfortable having AI talk to customers."
-  },
-  {
-    topic: "Attendant Modes",
-    question: "What can Advanced Attendant do that Minimal Attendant cannot?",
-    options: [
-      "Record and transcribe the call",
-      "Transfer to Overflow",
-      "Use AI to understand the caller's issue and optionally ask for name/company",
-      "Route calls to a technician phone number"
-    ],
-    correct: 2,
-    explanation: "Advanced Attendant uses AI to understand the issue and can optionally ask the caller for their name or company if the phone number isn't recognized."
-  },
-  {
-    topic: "Recently Shipped",
-    question: "What does the new 'Overflow on IVR Menu' feature allow?",
-    options: [
-      "MSPs to use Overflow as their primary call handler",
-      "Partners to test custom pronunciations from admin without making a test call",
-      "MSPs to select Overflow as a redirection option directly from the IVR menu with custom greetings",
-      "Technicians to accept calls by voice instead of pressing 1"
-    ],
-    correct: 2,
-    explanation: "Overflow on IVR Menu lets MSPs select Overflow as a redirection option directly from IVR menu settings in Advanced AI mode, with support for custom greetings."
-  },
-  {
     topic: "Recently Shipped",
     question: "How can technicians now accept a call handoff?",
     options: [
@@ -370,18 +331,6 @@ const QUESTIONS = [
     ],
     correct: 1,
     explanation: "The Technician Handoff feature now accepts voice too — the agent says 'Press 1 to accept or say I'd like to accept the call'."
-  },
-  {
-    topic: "Limitations",
-    question: "Which of these is a current limitation of Voice AI?",
-    options: [
-      "It cannot create tickets",
-      "It requires replacing the MSP's existing phone system",
-      "Only English is supported",
-      "It cannot record or transcribe calls"
-    ],
-    correct: 2,
-    explanation: "Voice AI currently only supports English. It also does NOT replace the MSP's current phone system — they still need it."
   },
   {
     topic: "Positioning",
